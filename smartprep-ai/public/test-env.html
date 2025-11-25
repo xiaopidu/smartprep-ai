@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API密钥测试指南</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .result {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        .step {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>API密钥测试指南</h1>
+    
+    <div class="step">
+        <h3>步骤 1: 打开主应用页面</h3>
+        <p>点击以下链接打开主应用页面：</p>
+        <a href="http://localhost:3000" target="_blank">http://localhost:3000</a>
+    </div>
+    
+    <div class="step">
+        <h3>步骤 2: 打开浏览器开发者工具</h3>
+        <p>在页面上按 F12 键，或右键点击页面并选择"检查"，然后切换到"控制台"选项卡。</p>
+    </div>
+    
+    <div class="step">
+        <h3>步骤 3: 检查环境变量</h3>
+        <p>在控制台中输入以下命令并按回车：</p>
+        <code>console.log(import.meta.env.VITE_DEEPSEEK_API_KEY)</code>
+        <p>如果环境变量正确加载，你应该看到类似以下的输出：</p>
+        <code>sk-d30914d...</code>
+    </div>
+    
+    <div class="step">
+        <h3>步骤 4: 测试API连接</h3>
+        <p>在控制台中输入以下命令并按回车：</p>
+        <pre><code>fetch('https://api.deepseek.com/v1/models', {
+  method: 'GET',
+  headers: {
+    'Authorization': `Bearer ${import.meta.env.VITE_DEEPSEEK_API_KEY}`,
+    'Content-Type': 'application/json'
+  }
+})
+.then(response => response.json())
+.then(data => console.log('API连接成功:', data))
+.catch(error => console.error('API连接失败:', error));</code></pre>
+    </div>
+    
+    <div class="step">
+        <h3>步骤 5: 测试AI题目生成</h3>
+        <p>在主应用页面中：</p>
+        <ol>
+            <li>点击"AI模拟题"章节</li>
+            <li>点击"快速生成题目"按钮</li>
+            <li>查看控制台输出和页面上的结果</li>
+        </ol>
+    </div>
+    
+    <div class="result">
+        <h3>常见问题解决</h3>
+        <p><strong>如果环境变量未定义：</strong></p>
+        <ul>
+            <li>检查.env文件是否在项目根目录</li>
+            <li>确保环境变量名以VITE_开头</li>
+            <li>重启开发服务器（停止后重新运行npm run dev）</li>
+        </ul>
+        
+        <p><strong>如果API连接失败：</strong></p>
+        <ul>
+            <li>检查API密钥是否有效</li>
+            <li>检查网络连接</li>
+            <li>确认API密钥没有过期</li>
+        </ul>
+    </div>
+    
+    <div class="result">
+        <h3>直接测试</h3>
+        <p>你也可以直接在主应用页面的控制台中运行以下测试函数：</p>
+        <code>testAPIKey()</code>
+        <p>如果这个函数未定义，请刷新页面后再试。</p>
+    </div>
+</body>
+</html>
