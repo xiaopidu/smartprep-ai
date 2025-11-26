@@ -1,0 +1,96 @@
+{
+  "name": "smartprep-ai",
+  "version": "1.0.0",
+  "description": "SmartPrep AI - 智能刷题助手桌面应用",
+  "main": "main.js",
+  "author": "SpongeBaby-124",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "pack:win": "electron-packager . \"SmartPrep AI\" --platform=win32 --arch=x64 --out=release --overwrite --icon=icons/icon.png",
+    "pack:mac": "electron-packager . \"SmartPrep AI\" --platform=darwin --arch=x64,arm64 --out=release --overwrite --icon=icons/icon.png",
+    "build:win": "electron-builder --win --x64",
+    "build:mac": "electron-builder --mac --x64 --arm64",
+    "build:all": "electron-builder --win --mac"
+  },
+  "build": {
+    "appId": "com.smartprep.ai",
+    "productName": "SmartPrep AI",
+    "forceCodeSigning": false,
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "dist/**/*",
+      "icons/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "icons/icon.png",
+      "artifactName": "${productName}-${version}-Windows-Setup.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "SmartPrep AI"
+    },
+    "portable": {
+      "artifactName": "${productName}-${version}-Windows-Portable.${ext}"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "icons/icon.png",
+      "artifactName": "${productName}-${version}-macOS-${arch}.${ext}",
+      "category": "public.app-category.education"
+    },
+    "dmg": {
+      "title": "SmartPrep AI",
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    }
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1",
+    "electron-packager": "^17.1.2",
+    "png-to-ico": "^3.0.1",
+    "pngjs": "^7.0.0",
+    "to-ico": "^1.1.5"
+  }
+}

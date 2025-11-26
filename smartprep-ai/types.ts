@@ -110,6 +110,12 @@ export const STORAGE_KEYS = {
   
   /** 笔记数据 */
   NOTES: 'sp_notes',
+  
+  /** DeepSeek API Key */
+  DEEPSEEK_API_KEY: 'sp_deepseek_api_key',
+  
+  /** Gemini API Key */
+  GEMINI_API_KEY: 'sp_gemini_api_key',
 } as const;
 
 export const CHAPTERS: Chapter[] = [

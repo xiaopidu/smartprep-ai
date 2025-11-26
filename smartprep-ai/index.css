@@ -225,6 +225,25 @@ code {
   margin: 0 4px;
 }
 
+/* 顶部工具栏白框样式 */
+.toolbar-header {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(251, 146, 60, 0.08);
+  border: 1px solid rgba(251, 146, 60, 0.15);
+  padding: 16px 24px;
+  margin: 0 -16px;
+}
+
+@media (min-width: 768px) {
+  .toolbar-header {
+    margin: 0 -32px;
+    padding: 16px 32px;
+    border-radius: 24px;
+  }
+}
+
 /* 响应式工具栏 */
 @media (max-width: 768px) {
   .toolbar-container {
@@ -446,4 +465,431 @@ code {
   background: #f3e8ff;
   border-color: #d8b4fe;
   color: #7c3aed;
+}
+
+/* ============================================================================
+   下拉菜单样式 (T14 - 工具栏重设计)
+   ============================================================================ */
+
+/* 下拉菜单容器 */
+.dropdown-container {
+  position: relative;
+}
+
+/* 下拉菜单触发按钮 */
+.dropdown-trigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  background: white;
+  border: 1px solid rgba(251, 146, 60, 0.3);
+  color: #78350f;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dropdown-trigger:hover {
+  background: linear-gradient(135deg, #fff7ed 0%, #fff1f2 100%);
+  border-color: rgba(251, 146, 60, 0.5);
+}
+
+.dropdown-trigger:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(251, 146, 60, 0.2);
+}
+
+/* 下拉菜单面板 */
+.dropdown-panel {
+  position: absolute;
+  z-index: 50;
+  margin-top: 8px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(251, 146, 60, 0.15), 0 0 0 1px rgba(251, 146, 60, 0.1);
+  border: 1px solid rgba(251, 146, 60, 0.2);
+  padding: 8px 0;
+  min-width: 180px;
+  animation: dropdownFadeIn 0.15s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 淡入动画类 */
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* 下拉菜单项 */
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 16px;
+  font-size: 14px;
+  text-align: left;
+  color: #374151;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dropdown-item:hover {
+  background: linear-gradient(135deg, #fff7ed 0%, #fdf2f8 100%);
+  color: #ea580c;
+}
+
+.dropdown-item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 下拉菜单复选框 */
+.dropdown-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 16px;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.dropdown-checkbox:hover {
+  background: linear-gradient(135deg, #fff7ed 0%, #fdf2f8 100%);
+}
+
+.dropdown-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 2px solid rgba(251, 146, 60, 0.4);
+  accent-color: #f97316;
+  cursor: pointer;
+}
+
+/* 下拉菜单分隔线 */
+.dropdown-divider {
+  height: 1px;
+  margin: 6px 0;
+  background: rgba(251, 146, 60, 0.15);
+}
+
+/* ============================================================================
+   工具栏重设计样式 (T14)
+   ============================================================================ */
+
+/* 工具栏容器 - 暖色主题 */
+.toolbar-redesign {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 移动端响应式适配 */
+@media (max-width: 640px) {
+  .toolbar-redesign {
+    gap: 8px;
+  }
+  
+  .toolbar-redesign .dropdown-trigger {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+  
+  .toolbar-redesign .dropdown-trigger span:not(:first-child):not(:last-child) {
+    display: none;
+  }
+}
+
+/* ============================================================================
+   设置面板样式 (T15)
+   ============================================================================ */
+
+/* 设置面板遮罩 */
+.settings-panel-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 设置面板容器 */
+.settings-panel {
+  position: relative;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  width: 100%;
+  max-width: 420px;
+  margin: 16px;
+  overflow: hidden;
+  animation: settingsPanelSlideIn 0.25s ease-out;
+}
+
+@keyframes settingsPanelSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* 设置面板头部 */
+.settings-panel header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #fff7ed 0%, #fdf2f8 100%);
+  border-bottom: 1px solid rgba(251, 146, 60, 0.2);
+}
+
+/* 设置面板内容 */
+.settings-panel section {
+  padding: 20px 24px;
+}
+
+/* 设置面板底部 */
+.settings-panel footer {
+  padding: 16px 24px;
+  background: #fafafa;
+  border-top: 1px solid #f1f5f9;
+}
+
+/* API Key 输入框 */
+.api-key-input {
+  width: 100%;
+  padding: 12px 44px 12px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(251, 146, 60, 0.3);
+  background: white;
+  font-size: 14px;
+  color: #1f2937;
+  transition: all 0.2s ease;
+}
+
+.api-key-input:focus {
+  outline: none;
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+}
+
+.api-key-input::placeholder {
+  color: #9ca3af;
+}
+
+/* 测试连接按钮 */
+.test-connection-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #fff7ed 0%, #fdf2f8 100%);
+  color: #ea580c;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.test-connection-btn:hover {
+  background: linear-gradient(135deg, #ffedd5 0%, #fce7f3 100%);
+}
+
+.test-connection-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 保存按钮 */
+.save-settings-btn {
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #f97316 0%, #ec4899 100%);
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+}
+
+.save-settings-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(249, 115, 22, 0.4);
+}
+
+.save-settings-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 状态指示器 */
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.status-indicator.success {
+  color: #059669;
+}
+
+.status-indicator.error {
+  color: #dc2626;
+}
+
+.status-indicator.testing {
+  color: #f97316;
+}
+
+.status-indicator.idle {
+  color: #9ca3af;
+}
+
+/* ============================================================================
+   AI Chatbox 样式
+   ============================================================================ */
+
+/* AI 聊天按钮动画 */
+.ai-chat-toggle {
+  position: relative;
+  overflow: hidden;
+}
+
+.ai-chat-toggle::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: inherit;
+}
+
+.ai-chat-toggle:hover::before {
+  opacity: 0.1;
+}
+
+.ai-chat-toggle.active {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  color: white;
+  border-color: transparent;
+}
+
+/* AI 消息气泡动画 */
+@keyframes messageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ai-message-bubble {
+  animation: messageSlideIn 0.3s ease-out;
+}
+
+/* AI 打字指示器 */
+@keyframes typingDot {
+  0%, 60%, 100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-4px);
+  }
+}
+
+.typing-indicator span {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #f97316;
+  margin: 0 2px;
+}
+
+.typing-indicator span:nth-child(1) {
+  animation: typingDot 1.4s ease-in-out infinite;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation: typingDot 1.4s ease-in-out 0.2s infinite;
+}
+
+.typing-indicator span:nth-child(3) {
+  animation: typingDot 1.4s ease-in-out 0.4s infinite;
+}
+
+/* Chatbox 滚动条样式 */
+.chatbox-messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chatbox-messages::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.chatbox-messages::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.chatbox-messages::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* 快捷问题按钮悬停效果 */
+.quick-question-btn {
+  transition: all 0.2s ease;
+}
+
+.quick-question-btn:hover {
+  transform: translateX(4px);
+  background-color: #fff7ed;
+  border-color: #f97316;
+}
+
+/* AI 聊天输入框聚焦效果 */
+.chat-input:focus {
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+}
+
+/* Chatbox 容器阴影 */
+.chatbox-container {
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.08);
 }

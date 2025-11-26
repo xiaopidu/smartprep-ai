@@ -9,6 +9,8 @@ export default defineConfig(({ mode }) => {
     console.log('VITE_DEEPSEEK_API_KEY found:', !!env.VITE_DEEPSEEK_API_KEY);
     
     return {
+      // 使用相对路径，以便 Electron 能正确加载资源
+      base: './',
       server: {
         port: 3000,
         host: '0.0.0.0',

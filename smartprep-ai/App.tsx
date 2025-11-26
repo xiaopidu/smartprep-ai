@@ -3,13 +3,17 @@ import { CHAPTERS, Question, UserProgress, QuestionType } from './types';
 import { STATIC_QUESTIONS, getChapterQuestions, isGeneratedQuestion } from './services/staticQuestions';
 import { generateQuestionsForChapter } from './services/deepseekServiceLangchain';
 import { AIGenerationPanel } from './components/AIGenerationPanel';
-import { APIStatusIndicator } from './components/APIStatusIndicator';
 import { ChapterCard } from './components/ChapterCard';
 import { QuestionCard } from './components/QuestionCard';
 import { FavoritesPanel } from './components/FavoritesPanel';
+import { SettingsPanel } from './components/SettingsPanel';
+import { QuestionTypeFilter } from './components/QuestionTypeFilter';
+import { QuestionSourceFilter } from './components/QuestionSourceFilter';
+import { MoreActionsMenu } from './components/MoreActionsMenu';
+import { AIChatBox } from './components/AIChatBox';
 import { useFavorites } from './hooks/useFavorites';
 import { useNotes } from './hooks/useNotes';
-import { LayoutDashboard, BookOpen, AlertOctagon, Sparkles, Loader2, ArrowLeft, RefreshCw, Eye, Edit3, Filter, Brain, Plus, Settings, Trash2, Heart } from 'lucide-react';
+import { LayoutDashboard, BookOpen, AlertOctagon, Sparkles, Loader2, ArrowLeft, RefreshCw, Eye, Edit3, Filter, Brain, Plus, Settings, Trash2, Heart, MessageCircle } from 'lucide-react';
 
 // 扩展Window接口以包含testAPIKey函数
 declare global {
@@ -193,6 +197,12 @@ export default function App() {
   const [generatedQuestions, setGeneratedQuestions] = useState<Question[]>([]);
   const [showAIPanel, setShowAIPanel] = useState(false);
   const [showAIQuestions, setShowAIQuestions] = useState(false);
+  
+  // 设置面板状态
+  const [showSettingsPanel, setShowSettingsPanel] = useState(false);
+  
+  // AI Chatbox 状态
+  const [showChatBox, setShowChatBox] = useState(false);
   
   // 控制是否显示AI模拟题
   const [includeAIQuestions, setIncludeAIQuestions] = useState(false);
@@ -589,6 +599,12 @@ export default function App() {
               count={favoritesCount}
             />
             <SidebarItem 
+              icon={Settings} 
+              label="API 设置" 
+              active={false} 
+              onClick={() => setShowSettingsPanel(true)}
+            />
+            <SidebarItem 
               icon={Trash2} 
               label="清除所有记录" 
               active={false} 
@@ -634,6 +650,9 @@ export default function App() {
                     <Heart className="w-5 h-5"/>
                     {favoritesCount > 0 && <span className="absolute top-1 right-1 w-2 h-2 bg-pink-500 rounded-full"></span>}
                 </button>
+                <button onClick={() => setShowSettingsPanel(true)} className="p-2 bg-orange-50 text-orange-600 rounded-lg">
+                    <Settings className="w-5 h-5"/>
+                </button>
                 <button onClick={handleResetAllProgressNew} className="p-2 bg-red-50 text-red-600 rounded-lg">
                     <Trash2 className="w-5 h-5"/>
                 </button>
@@ -668,7 +687,8 @@ export default function App() {
         {/* Question View (Chapter or Mistakes) */}
         {(currentView === 'chapter' || currentView === 'mistakes') && (
             <div className="animate-fade-in pb-20">
-                <div className="flex flex-col xl:flex-row xl:items-center justify-between mb-8 sticky top-0 bg-slate-50/95 backdrop-blur-sm py-4 z-20 border-b border-slate-200/50 gap-4">
+                {/* 工具栏 - 全宽度 */}
+                <div className="flex flex-col xl:flex-row xl:items-center justify-between mb-8 sticky top-0 bg-white/95 backdrop-blur-sm py-4 px-6 -mx-4 md:-mx-8 md:px-8 z-20 rounded-2xl shadow-sm border border-orange-100/50 gap-4">
                     <div className="flex items-center gap-4">
                         <button 
                             onClick={() => setCurrentView('dashboard')}
@@ -713,258 +733,154 @@ export default function App() {
                                     if (isAISimulationChapter) {
                                         const officialCount = includeDefaultQuestions ? questions.filter(q => q.chapterId === activeChapterId).length : 0;
                                         const aiCount = includeAIQuestions ? generatedQuestions.filter(q => q.chapterId === activeChapterId).length : 0;
-                                        return `本页 ${officialCount} 道默认题目 + ${aiCount} 道AI模拟题 = 共 ${activeQuestions.length} 道题目`;
-                                    }
+                                            return `本页 ${officialCount} 道默认题目 + ${aiCount} 道AI模拟题 = 共 ${activeQuestions.length} 道题目`;
+                                        }
+                                        
+                                        return `本页 ${activeQuestions.length} 道题目`;
+                                    })()}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="toolbar-redesign flex flex-wrap items-center gap-3">
+                            {/* 题型筛选下拉菜单 */}
+                            {currentView === 'chapter' && (
+                                <QuestionTypeFilter
+                                    selectedTypes={selectedQuestionTypes}
+                                    onToggle={(type, checked) => setSelectedQuestionTypes(prev => ({
+                                        ...prev,
+                                        [type]: checked
+                                    }))}
+                                />
+                            )}
+                            
+                            {/* 做题/背诵模式切换 */}
+                            <StudyModeToggle />
+
+                            {/* 错题集的题库来源下拉菜单 */}
+                            {currentView === 'mistakes' && (
+                                <QuestionSourceFilter
+                                    includeDefault={mistakesIncludeDefault}
+                                    includeAI={mistakesIncludeAI}
+                                    onToggleDefault={(checked) => setMistakesIncludeDefault(checked)}
+                                    onToggleAI={(checked) => setMistakesIncludeAI(checked)}
+                                    showAIOption={true}
+                                />
+                            )}
+
+                            {/* 章节视图的工具栏 */}
+                            {currentView === 'chapter' && (
+                                <>
+                                    {/* 题库来源下拉菜单 */}
+                                    <QuestionSourceFilter
+                                        includeDefault={includeDefaultQuestions}
+                                        includeAI={includeAIQuestions}
+                                        onToggleDefault={(checked) => setIncludeDefaultQuestions(checked)}
+                                        onToggleAI={(checked) => setIncludeAIQuestions(checked)}
+                                        showAIOption={isAISimulationChapter}
+                                    />
                                     
-                                    return `本页 ${activeQuestions.length} 道题目`;
-                                })()}
-                            </p>
+                                    {/* 更多操作下拉菜单 */}
+                                    <MoreActionsMenu
+                                        onlyMistakes={onlyMistakes}
+                                        onToggleMistakes={() => setOnlyMistakes(!onlyMistakes)}
+                                        onResetChapter={handleResetChapter}
+                                        onCustomAIGenerate={handleOpenAIPanel}
+                                        showAIOption={isAISimulationChapter}
+                                        isGenerating={isGeneratingQuestions}
+                                    />
+                                </>
+                            )}
+                            
+                            {/* AI 助手切换按钮 */}
+                            <button
+                                onClick={() => setShowChatBox(!showChatBox)}
+                                className={`ai-chat-toggle flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                                    showChatBox 
+                                        ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-md' 
+                                        : 'bg-white text-slate-600 border border-orange-200 hover:bg-orange-50 hover:border-orange-300'
+                                }`}
+                            >
+                                <MessageCircle className="w-4 h-4" />
+                                <span className="hidden sm:inline">AI 助手</span>
+                            </button>
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3">
-                        {/* 题型筛选组件 */}
-                        {currentView === 'chapter' && (
-                            <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2">
-                                <Filter className="w-4 h-4 text-slate-500" />
-                                <span className="text-sm font-medium text-slate-600">题型筛选:</span>
-                                <div className="flex gap-2">
-                                    {Object.entries(selectedQuestionTypes).map(([type, checked]) => (
-                                        <label key={type} className="flex items-center gap-1 text-sm cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                checked={checked}
-                                                onChange={(e) => setSelectedQuestionTypes(prev => ({
-                                                    ...prev,
-                                                    [type]: e.target.checked
-                                                }))}
-                                                className="w-4 h-4 text-blue-600 bg-white border-slate-300 rounded focus:ring-blue-500 focus:ring-2"
-                                            />
-                                            <span className={`text-xs px-2 py-1 rounded ${
-                                                type === QuestionType.SINGLE ? 'bg-blue-100 text-blue-700' :
-                                                type === QuestionType.MULTIPLE ? 'bg-purple-100 text-purple-700' :
-                                                type === QuestionType.TRUE_FALSE ? 'bg-yellow-100 text-yellow-700' :
-                                                'bg-green-100 text-green-700'
-                                            }`}>
-                                                {type === QuestionType.SINGLE ? '单选' :
-                                                 type === QuestionType.MULTIPLE ? '多选' :
-                                                 type === QuestionType.TRUE_FALSE ? '判断' : '填空'}
-                                            </span>
-                                        </label>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                        
-                        <StudyModeToggle />
-
-                        {/* 错题集的题库开关 */}
-                        {currentView === 'mistakes' && (
-                            <>
-                                <div className="h-6 w-px bg-slate-300 mx-1 hidden md:block"></div>
-                                
-                                {/* 默认题库开关 */}
-                                <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2">
-                                    <BookOpen className="w-4 h-4 text-slate-500" />
-                                    <span className="text-sm font-medium text-slate-600">默认题库:</span>
-                                    <button
-                                        onClick={() => setMistakesIncludeDefault(!mistakesIncludeDefault)}
-                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                                            mistakesIncludeDefault ? 'bg-blue-600' : 'bg-slate-200'
-                                        }`}
-                                    >
-                                        <span
-                                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                                mistakesIncludeDefault ? 'translate-x-6' : 'translate-x-1'
-                                            }`}
-                                        />
-                                    </button>
-                                </div>
-                                
-                                {/* AI模拟题开关 */}
-                                <div className="h-6 w-px bg-slate-300 mx-1 hidden md:block"></div>
-                                <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2">
-                                    <Brain className="w-4 h-4 text-slate-500" />
-                                    <span className="text-sm font-medium text-slate-600">AI模拟题:</span>
-                                    <button
-                                        onClick={() => setMistakesIncludeAI(!mistakesIncludeAI)}
-                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                                            mistakesIncludeAI ? 'bg-blue-600' : 'bg-slate-200'
-                                        }`}
-                                    >
-                                        <span
-                                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                                mistakesIncludeAI ? 'translate-x-6' : 'translate-x-1'
-                                            }`}
-                                        />
-                                    </button>
-                                </div>
-                            </>
-                        )}
-
-                        {currentView === 'chapter' && (
-                            <>
-                                <div className="h-6 w-px bg-slate-300 mx-1 hidden md:block"></div>
-                                <button
-                                    onClick={() => setOnlyMistakes(!onlyMistakes)}
-                                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                                        onlyMistakes ? 'bg-red-50 text-red-700 border-red-200' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                                    }`}
-                                >
-                                    <Filter className="w-4 h-4" />
-                                    只做错题
-                                </button>
-
-                                <button
-                                    onClick={handleResetChapter}
-                                    className="flex items-center gap-2 px-3 py-2 bg-white text-slate-600 border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50 hover:text-slate-900 transition-colors"
-                                >
-                                    <RefreshCw className="w-4 h-4" />
-                                    重刷本章
-                                </button>
-                                
-                                {/* 默认题库开关 */}
-                                <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2">
-                                    <BookOpen className="w-4 h-4 text-slate-500" />
-                                    <span className="text-sm font-medium text-slate-600">默认题库:</span>
-                                    <button
-                                        onClick={() => {
-                                            // 切换默认题库状态
-                                            const newState = !includeDefaultQuestions;
-                                            setIncludeDefaultQuestions(newState);
+                {/* 内容区域和 Chatbox 的 Flex 容器 */}
+                <div className="flex gap-4">
+                    <div className={`transition-all duration-300 ease-in-out ${showChatBox ? 'flex-1 min-w-0' : 'w-full'}`}>
+                        <div className="space-y-8">
+                            {activeQuestions.length === 0 ? (
+                                <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300">
+                                    <div className="bg-slate-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        {currentView === 'mistakes' ? <AlertOctagon className="w-8 h-8 text-slate-300" /> : 
+                                         isAISimulationChapter ? <Brain className="w-8 h-8 text-slate-300" /> : <BookOpen className="w-8 h-8 text-slate-300" />}
+                                    </div>
+                                    <h3 className="text-lg font-medium text-slate-900 mb-2">
+                                        {currentView === 'mistakes' ? '没有符合条件的错题' : 
+                                         isAISimulationChapter ? 'SmartPrep AI刷题小助手' : '列表为空'}
+                                    </h3>
+                                    <p className="text-slate-500 max-w-xs mx-auto mb-6">
+                                        {(() => {
+                                            if (currentView === 'mistakes') {
+                                                if (!mistakesIncludeDefault && !mistakesIncludeAI) {
+                                                    return '请开启"默认题库"或"AI模拟题"开关以显示错题！';
+                                                }
+                                                
+                                                // 计算各类型错题数量
+                                                const defaultMistakes = questions.filter(q => {
+                                                    const p = progress[q.id];
+                                                    return p && p.mistakeCount > 0;
+                                                }).length;
+                                                
+                                                const aiMistakes = generatedQuestions.filter(q => {
+                                                    const p = progress[q.id];
+                                                    return p && p.mistakeCount > 0;
+                                                }).length;
+                                                
+                                                if (mistakesIncludeDefault && mistakesIncludeAI && defaultMistakes === 0 && aiMistakes === 0) {
+                                                    return '你很棒，或者还没开始做题！';
+                                                } else if (mistakesIncludeDefault && !mistakesIncludeAI && defaultMistakes === 0) {
+                                                    return '默认题库中没有错题，继续保持！';
+                                                } else if (!mistakesIncludeDefault && mistakesIncludeAI && aiMistakes === 0) {
+                                                    return 'AI模拟题中没有错题，继续保持！';
+                                                } else if (mistakesIncludeDefault && mistakesIncludeAI) {
+                                                    if (defaultMistakes === 0) return '默认题库中没有错题，但AI模拟题中有错题！';
+                                                    if (aiMistakes === 0) return 'AI模拟题中没有错题，但默认题库中有错题！';
+                                                }
+                                                
+                                                return '你很棒，或者还没开始做题！';
+                                            }
                                             
-                                            // 如果关闭默认题库，不再自动关闭AI模拟题
-                                            // 用户可以独立控制这两个开关
-                                        }}
-                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                                            includeDefaultQuestions ? 'bg-blue-600' : 'bg-slate-200'
-                                        }`}
-                                    >
-                                        <span
-                                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                                includeDefaultQuestions ? 'translate-x-6' : 'translate-x-1'
-                                            }`}
-                                        />
-                                    </button>
-                                </div>
-                                
-                                {/* AI模拟题开关 */}
-                                {isAISimulationChapter && (
-                                    <>
-                                        <div className="h-6 w-px bg-slate-300 mx-1 hidden md:block"></div>
-                                        <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2">
-                                            <Brain className="w-4 h-4 text-slate-500" />
-                                            <span className="text-sm font-medium text-slate-600">AI模拟题:</span>
-                                            <button
-                                                onClick={() => setIncludeAIQuestions(!includeAIQuestions)}
-                                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                                                    includeAIQuestions ? 'bg-blue-600' : 'bg-slate-200'
-                                                }`}
-                                            >
-                                                <span
-                                                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                                        includeAIQuestions ? 'translate-x-6' : 'translate-x-1'
-                                                    }`}
-                                                />
-                                            </button>
-                                        </div>
-                                    </>
-                                )}
-                                
-                                {/* AI模拟题章节显示生成题目按钮 */}
-                                {isAISimulationChapter && (
-                                    <>
-                                        <div className="h-6 w-px bg-slate-300 mx-1 hidden md:block"></div>
+                                            if (onlyMistakes) {
+                                                return '本章节没有错题，继续保持！';
+                                            }
+                                            
+                                            if (!isAISimulationChapter) {
+                                                return '正在加载题目，请稍候...';
+                                            }
+                                            
+                                            if (!includeDefaultQuestions && !includeAIQuestions) {
+                                                return '请开启"默认题库"或"AI模拟题"开关以显示题目！';
+                                            }
+                                            
+                                            if (includeAIQuestions && generatedQuestions.filter(q => q.chapterId === activeChapterId).length === 0) {
+                                                return '本章节暂无AI模拟题，请先点击"自定义AI生成"按钮生成题目！';
+                                            }
+                                            
+                                            if (includeDefaultQuestions && questions.filter(q => q.chapterId === activeChapterId).length === 0) {
+                                                return '本章节暂无默认题目，请开启"AI模拟题"开关或点击"自定义AI生成"按钮生成题目！';
+                                            }
+                                            
+                                            return '正在加载题目，请稍候...';
+                                        })()}
+                                    </p>
+                                    {currentView === 'chapter' && onlyMistakes && (
                                         <button
-                                            onClick={handleOpenAIPanel}
-                                            className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-green-500 to-blue-600 text-white border border-blue-200 rounded-lg text-sm font-medium hover:from-green-600 hover:to-blue-700 transition-all shadow-sm hover:shadow-md"
+                                            onClick={() => setOnlyMistakes(false)}
+                                            className="text-blue-600 font-medium hover:text-blue-700 hover:underline"
                                         >
-                                            <Settings className="w-4 h-4" />
-                                            自定义AI生成
-                                        </button>
-                                    </>
-                                )}
-                            </>
-                        )}
-                    </div>
-                </div>
-
-                <div className="space-y-8">
-                    {/* AI模拟题章节的API状态指示器 */}
-                    {isAISimulationChapter && (
-                        <APIStatusIndicator />
-                    )}
-                    
-                    {activeQuestions.length === 0 ? (
-                        <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300">
-                            <div className="bg-slate-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                                {currentView === 'mistakes' ? <AlertOctagon className="w-8 h-8 text-slate-300" /> : 
-                                 isAISimulationChapter ? <Brain className="w-8 h-8 text-slate-300" /> : <BookOpen className="w-8 h-8 text-slate-300" />}
-                            </div>
-                            <h3 className="text-lg font-medium text-slate-900 mb-2">
-                                {currentView === 'mistakes' ? '没有符合条件的错题' : 
-                                 isAISimulationChapter ? 'SmartPrep AI刷题小助手' : '列表为空'}
-                            </h3>
-                            <p className="text-slate-500 max-w-xs mx-auto mb-6">
-                                {(() => {
-                                    if (currentView === 'mistakes') {
-                                        if (!mistakesIncludeDefault && !mistakesIncludeAI) {
-                                            return '请开启"默认题库"或"AI模拟题"开关以显示错题！';
-                                        }
-                                        
-                                        // 计算各类型错题数量
-                                        const defaultMistakes = questions.filter(q => {
-                                            const p = progress[q.id];
-                                            return p && p.mistakeCount > 0;
-                                        }).length;
-                                        
-                                        const aiMistakes = generatedQuestions.filter(q => {
-                                            const p = progress[q.id];
-                                            return p && p.mistakeCount > 0;
-                                        }).length;
-                                        
-                                        if (mistakesIncludeDefault && mistakesIncludeAI && defaultMistakes === 0 && aiMistakes === 0) {
-                                            return '你很棒，或者还没开始做题！';
-                                        } else if (mistakesIncludeDefault && !mistakesIncludeAI && defaultMistakes === 0) {
-                                            return '默认题库中没有错题，继续保持！';
-                                        } else if (!mistakesIncludeDefault && mistakesIncludeAI && aiMistakes === 0) {
-                                            return 'AI模拟题中没有错题，继续保持！';
-                                        } else if (mistakesIncludeDefault && mistakesIncludeAI) {
-                                            if (defaultMistakes === 0) return '默认题库中没有错题，但AI模拟题中有错题！';
-                                            if (aiMistakes === 0) return 'AI模拟题中没有错题，但默认题库中有错题！';
-                                        }
-                                        
-                                        return '你很棒，或者还没开始做题！';
-                                    }
-                                    
-                                    if (onlyMistakes) {
-                                        return '本章节没有错题，继续保持！';
-                                    }
-                                    
-                                    if (!isAISimulationChapter) {
-                                        return '正在加载题目，请稍候...';
-                                    }
-                                    
-                                    if (!includeDefaultQuestions && !includeAIQuestions) {
-                                        return '请开启"默认题库"或"AI模拟题"开关以显示题目！';
-                                    }
-                                    
-                                    if (includeAIQuestions && generatedQuestions.filter(q => q.chapterId === activeChapterId).length === 0) {
-                                        return '本章节暂无AI模拟题，请先点击"自定义AI生成"按钮生成题目！';
-                                    }
-                                    
-                                    if (includeDefaultQuestions && questions.filter(q => q.chapterId === activeChapterId).length === 0) {
-                                        return '本章节暂无默认题目，请开启"AI模拟题"开关或点击"自定义AI生成"按钮生成题目！';
-                                    }
-                                    
-                                    return '正在加载题目，请稍候...';
-                                })()}
-                            </p>
-                            {currentView === 'chapter' && onlyMistakes && (
-                                <button
-                                    onClick={() => setOnlyMistakes(false)}
-                                    className="text-blue-600 font-medium hover:text-blue-700 hover:underline"
-                                >
                                     查看所有题目
                                 </button>
                             )}
@@ -1019,6 +935,19 @@ export default function App() {
                             );
                         })
                     )}
+                        </div>
+                    </div>
+                    
+                    {/* AI Chatbox */}
+                    <AIChatBox
+                        isOpen={showChatBox}
+                        onToggle={() => setShowChatBox(!showChatBox)}
+                        currentQuestion={activeQuestions.length > 0 ? {
+                            content: activeQuestions[0].content,
+                            options: activeQuestions[0].options,
+                            type: activeQuestions[0].type
+                        } : undefined}
+                    />
                 </div>
             </div>
         )}
@@ -1026,7 +955,7 @@ export default function App() {
         {/* Official Questions View */}
         {currentView === 'official' && (
             <div className="animate-fade-in pb-20">
-                <div className="flex flex-col xl:flex-row xl:items-center justify-between mb-8 sticky top-0 bg-slate-50/95 backdrop-blur-sm py-4 z-20 border-b border-slate-200/50 gap-4">
+                <div className="flex flex-col xl:flex-row xl:items-center justify-between mb-8 sticky top-0 bg-white/95 backdrop-blur-sm py-4 px-6 -mx-4 md:-mx-8 md:px-8 z-20 rounded-2xl shadow-sm border border-orange-100/50 gap-4">
                     <div className="flex items-center gap-4">
                         <button 
                             onClick={() => setCurrentView('dashboard')}
@@ -1103,7 +1032,7 @@ export default function App() {
         {/* AI Questions View */}
         {currentView === 'ai' && (
             <div className="animate-fade-in pb-20">
-                <div className="flex flex-col xl:flex-row xl:items-center justify-between mb-8 sticky top-0 bg-slate-50/95 backdrop-blur-sm py-4 z-20 border-b border-slate-200/50 gap-4">
+                <div className="flex flex-col xl:flex-row xl:items-center justify-between mb-8 sticky top-0 bg-white/95 backdrop-blur-sm py-4 px-6 -mx-4 md:-mx-8 md:px-8 z-20 rounded-2xl shadow-sm border border-orange-100/50 gap-4">
                     <div className="flex items-center gap-4">
                         <button 
                             onClick={() => setCurrentView('dashboard')}
@@ -1135,8 +1064,6 @@ export default function App() {
                 </div>
 
                 <div className="space-y-8">
-                    <APIStatusIndicator />
-                    
                     {generatedQuestions.length === 0 ? (
                         <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300">
                             <div className="bg-slate-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -1188,36 +1115,63 @@ export default function App() {
         {/* Favorites View - 收藏夹 */}
         {currentView === 'favorites' && (
             <div className="animate-fade-in pb-20">
-                <div className="flex items-center gap-4 mb-8">
-                    <button 
-                        onClick={() => setCurrentView('dashboard')}
-                        className="p-2 hover:bg-white rounded-full transition-colors border border-transparent hover:border-slate-200 hover:shadow-sm"
-                    >
-                        <ArrowLeft className="w-5 h-5 text-slate-600" />
-                    </button>
-                    <div>
-                        <h2 className="text-2xl font-bold text-slate-800">收藏夹</h2>
-                        <p className="text-sm text-slate-500">
-                            管理你收藏的重点题目
-                        </p>
+                {/* 工具栏 - 全宽度 */}
+                <div className="flex items-center justify-between gap-4 mb-8 sticky top-0 bg-white/95 backdrop-blur-sm py-4 px-6 -mx-4 md:-mx-8 md:px-8 z-20 rounded-2xl shadow-sm border border-orange-100/50">
+                    <div className="flex items-center gap-4">
+                        <button 
+                            onClick={() => setCurrentView('dashboard')}
+                            className="p-2 hover:bg-white rounded-full transition-colors border border-transparent hover:border-slate-200 hover:shadow-sm"
+                        >
+                            <ArrowLeft className="w-5 h-5 text-slate-600" />
+                        </button>
+                        <div>
+                            <h2 className="text-2xl font-bold text-slate-800">收藏夹</h2>
+                            <p className="text-sm text-slate-500">
+                                管理你收藏的重点题目
+                            </p>
+                        </div>
                     </div>
-                </div>
+                    
+                    {/* AI 助手切换按钮 */}
+                    <button
+                            onClick={() => setShowChatBox(!showChatBox)}
+                            className={`ai-chat-toggle flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                                showChatBox 
+                                    ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-md' 
+                                    : 'bg-white text-slate-600 border border-orange-200 hover:bg-orange-50 hover:border-orange-300'
+                            }`}
+                        >
+                            <MessageCircle className="w-4 h-4" />
+                            <span className="hidden sm:inline">AI 助手</span>
+                        </button>
+                    </div>
 
-                <FavoritesPanel
-                    favorites={favorites}
-                    questions={[...questions, ...generatedQuestions]}
-                    progress={progress}
-                    notes={notes}
-                    onQuestionClick={(questionId, chapterId) => {
-                        // 导航到对应章节并定位到题目
-                        setActiveChapterId(chapterId);
-                        setCurrentView('chapter');
-                        setOnlyMistakes(false);
-                        setStudyMode('practice');
-                        setSessionStartTime(Date.now());
-                    }}
-                    onRemoveFavorite={removeFavorite}
-                />
+                    {/* 内容区域和 Chatbox 的 Flex 容器 */}
+                    <div className="flex gap-4">
+                        <div className={`transition-all duration-300 ease-in-out ${showChatBox ? 'flex-1 min-w-0' : 'w-full'}`}>
+                            <FavoritesPanel
+                                favorites={favorites}
+                                questions={[...questions, ...generatedQuestions]}
+                                progress={progress}
+                                notes={notes}
+                                onQuestionClick={(questionId, chapterId) => {
+                                    // 导航到对应章节并定位到题目
+                                    setActiveChapterId(chapterId);
+                                    setCurrentView('chapter');
+                                    setOnlyMistakes(false);
+                                    setStudyMode('practice');
+                                    setSessionStartTime(Date.now());
+                                }}
+                                onRemoveFavorite={removeFavorite}
+                            />
+                        </div>
+                        
+                        {/* AI Chatbox */}
+                        <AIChatBox
+                            isOpen={showChatBox}
+                            onToggle={() => setShowChatBox(!showChatBox)}
+                        />
+                    </div>
             </div>
         )}
 
@@ -1234,6 +1188,12 @@ export default function App() {
             </div>
           </div>
         )}
+
+        {/* 设置面板 */}
+        <SettingsPanel
+          isOpen={showSettingsPanel}
+          onClose={() => setShowSettingsPanel(false)}
+        />
       </main>
     </div>
   );
