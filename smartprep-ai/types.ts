@@ -30,6 +30,88 @@ export interface Chapter {
   description: string;
 }
 
+// ============================================================================
+// 收藏与笔记功能类型定义
+// ============================================================================
+
+/**
+ * 单条收藏记录
+ * 存储用户收藏的题目信息
+ */
+export interface Favorite {
+  /** 题目唯一标识符，关联 Question.id */
+  questionId: string;
+  
+  /** 收藏时间戳（毫秒），用于按时间排序 */
+  favoriteAt: number;
+  
+  /** 所属章节ID，用于快速筛选，关联 Question.chapterId */
+  chapter: number;
+}
+
+/**
+ * 收藏列表
+ * 使用对象形式存储，支持 O(1) 查询
+ */
+export interface FavoriteList {
+  [questionId: string]: Favorite;
+}
+
+/**
+ * 单条笔记记录
+ * 存储用户为题目添加的笔记
+ */
+export interface QuestionNote {
+  /** 题目唯一标识符，关联 Question.id */
+  questionId: string;
+  
+  /** 笔记内容，支持多行文本 */
+  content: string;
+  
+  /** 最后更新时间戳（毫秒） */
+  updatedAt: number;
+}
+
+/**
+ * 笔记列表
+ * 使用对象形式存储，支持 O(1) 查询
+ */
+export interface NoteList {
+  [questionId: string]: QuestionNote;
+}
+
+/**
+ * 题目综合状态
+ */
+export interface QuestionStatus {
+  /** 是否已收藏 */
+  isFavorite: boolean;
+  
+  /** 是否为错题（mistakeCount > 0） */
+  isMistake: boolean;
+  
+  /** 是否有笔记 */
+  hasNote: boolean;
+}
+
+/**
+ * localStorage 存储键定义
+ * 所有键使用 sp_ 前缀保持一致性
+ */
+export const STORAGE_KEYS = {
+  /** 题库数据 */
+  QUESTIONS: 'sp_questions',
+  
+  /** 做题进度 */
+  PROGRESS: 'sp_progress',
+  
+  /** 收藏列表 */
+  FAVORITES: 'sp_favorites',
+  
+  /** 笔记数据 */
+  NOTES: 'sp_notes',
+} as const;
+
 export const CHAPTERS: Chapter[] = [
   { id: 1, title: '第一章 人工智能概览', description: '本章涵盖了人工智能的基本概念、发展历程和应用场景。' },
   { id: 2, title: '第二章 机器学习详解', description: '本章涵盖了机器学习的基本原理、算法分类和应用方法。' },

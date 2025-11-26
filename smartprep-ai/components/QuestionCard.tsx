@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle2, XCircle, AlertCircle, Brain } from 'lucide-react';
 import { Question, QuestionType, UserProgress } from '../types';
+import FavoriteButton from './FavoriteButton';
+import BadgeStack from './BadgeStack';
+import NoteEditor from './NoteEditor';
 
 interface QuestionCardProps {
   question: Question;
@@ -8,6 +11,24 @@ interface QuestionCardProps {
   mistakeCount?: number;
   showAnswer?: boolean;
   onAnswer: (questionId: string, answer: string | string[], isCorrect: boolean) => void;
+  
+  /** 新增：是否已收藏 */
+  isFavorite?: boolean;
+  
+  /** 新增：切换收藏状态 */
+  onToggleFavorite?: (questionId: string) => void;
+  
+  /** 新增：当前笔记内容 */
+  noteContent?: string;
+  
+  /** 新增：保存笔记 */
+  onSaveNote?: (questionId: string, content: string) => void;
+  
+  /** 新增：删除笔记 */
+  onDeleteNote?: (questionId: string) => void;
+  
+  /** 新增：是否使用双列布局（默认true） */
+  useGridLayout?: boolean;
 }
 
 export const QuestionCard: React.FC<QuestionCardProps> = ({ 
@@ -15,11 +36,18 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   progress, 
   mistakeCount, 
   showAnswer = false,
-  onAnswer 
+  onAnswer,
+  isFavorite = false,
+  onToggleFavorite,
+  noteContent = '',
+  onSaveNote,
+  onDeleteNote,
+  useGridLayout = true,
 }) => {
   const [selectedOption, setSelectedOption] = useState<string | string[] | null>(null);
   const [textAnswer, setTextAnswer] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isNoteExpanded, setIsNoteExpanded] = useState(false);
   
   // Reset local state when question changes or progress is reset
   useEffect(() => {
@@ -151,11 +179,22 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   };
 
   const currentMistakeCount = mistakeCount ?? progress?.mistakeCount ?? 0;
+  const hasNote = Boolean(noteContent?.trim());
 
   return (
-    <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 max-w-3xl mx-auto">
-      {/* Header Tags */}
-      <div className="flex flex-wrap gap-2 mb-6">
+    <div className="question-card-enhanced bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 max-w-3xl mx-auto">
+      {/* 收藏按钮 - 右上角 */}
+      {onToggleFavorite && (
+        <div className="favorite-button-container">
+          <FavoriteButton
+            isFavorite={isFavorite}
+            onToggle={() => onToggleFavorite(question.id)}
+          />
+        </div>
+      )}
+
+      {/* Header Tags with BadgeStack */}
+      <div className="flex flex-wrap items-center gap-2 mb-6 pr-14">
         <span className={`px-3 py-1 rounded-full text-xs font-medium 
           ${question.type === QuestionType.SINGLE ? 'bg-indigo-100 text-indigo-700' : 
             question.type === QuestionType.MULTIPLE ? 'bg-purple-100 text-purple-700' :
@@ -172,12 +211,13 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
             AI生成
           </span>
         )}
-        {currentMistakeCount > 0 && (
-          <span className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
-             <AlertCircle className="w-3 h-3" />
-             做错 {currentMistakeCount} 次
-          </span>
-        )}
+        {/* 使用 BadgeStack 显示状态 */}
+        <BadgeStack
+          isMistake={currentMistakeCount > 0}
+          isFavorite={isFavorite}
+          hasNote={hasNote}
+          mistakeCount={currentMistakeCount}
+        />
       </div>
 
       {/* Question Content */}
@@ -185,14 +225,14 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
         {question.content}
       </h2>
 
-      {/* Options Area */}
-      <div className="space-y-3 mb-8">
+      {/* Options Area - 使用双列网格布局 */}
+      <div className={`mb-8 ${useGridLayout && (question.type === QuestionType.SINGLE || question.type === QuestionType.MULTIPLE) ? 'options-grid' : 'space-y-3'}`}>
         {(question.type === QuestionType.SINGLE || question.type === QuestionType.MULTIPLE) && question.options?.map((option, idx) => (
           <button
             key={idx}
             onClick={() => question.type === QuestionType.SINGLE ? handleSingleSelection(option) : handleMultiSelection(option)}
             disabled={isResultState}
-            className={`w-full text-left p-4 rounded-xl border-2 transition-all duration-200 flex items-center gap-3 ${getOptionStyle(option)}`}
+            className={`option-button w-full text-left p-4 rounded-xl border-2 transition-all duration-200 flex items-center gap-3 ${getOptionStyle(option)}`}
           >
              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center
                 ${getOptionStyle(option).includes('border-blue') || getOptionStyle(option).includes('border-green') ? 'border-current' : 'border-slate-300'}
@@ -276,6 +316,18 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
             </div>
         )}
       </div>
+
+      {/* 笔记编辑器 */}
+      {onSaveNote && onDeleteNote && (
+        <NoteEditor
+          questionId={question.id}
+          initialContent={noteContent}
+          isExpanded={isNoteExpanded}
+          onToggleExpand={() => setIsNoteExpanded(!isNoteExpanded)}
+          onSave={onSaveNote}
+          onDelete={onDeleteNote}
+        />
+      )}
     </div>
   );
 };
