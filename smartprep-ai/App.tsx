@@ -6,7 +6,10 @@ import { AIGenerationPanel } from './components/AIGenerationPanel';
 import { APIStatusIndicator } from './components/APIStatusIndicator';
 import { ChapterCard } from './components/ChapterCard';
 import { QuestionCard } from './components/QuestionCard';
-import { LayoutDashboard, BookOpen, AlertOctagon, Sparkles, Loader2, ArrowLeft, RefreshCw, Eye, Edit3, Filter, Brain, Plus, Settings, Trash2 } from 'lucide-react';
+import { FavoritesPanel } from './components/FavoritesPanel';
+import { useFavorites } from './hooks/useFavorites';
+import { useNotes } from './hooks/useNotes';
+import { LayoutDashboard, BookOpen, AlertOctagon, Sparkles, Loader2, ArrowLeft, RefreshCw, Eye, Edit3, Filter, Brain, Plus, Settings, Trash2, Heart } from 'lucide-react';
 
 // 扩展Window接口以包含testAPIKey函数
 declare global {
@@ -124,16 +127,16 @@ function useQuizStore() {
 const SidebarItem = ({ icon: Icon, label, active, onClick, count }: any) => (
   <button 
     onClick={onClick}
-    className={`w-full flex items-center justify-between p-3 rounded-lg mb-1 transition-colors ${
-      active ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-600 hover:bg-slate-50'
+    className={`nav-compact nav-item-hover w-full flex items-center justify-between rounded-lg transition-colors ${
+      active ? 'nav-item-active' : 'text-slate-600'
     }`}
   >
     <div className="flex items-center gap-3">
-      <Icon className={`w-5 h-5 ${active ? 'text-blue-600' : 'text-slate-400'}`} />
-      <span>{label}</span>
+      <Icon className={`nav-icon w-5 h-5 ${active ? 'text-orange-500' : 'text-slate-400'}`} />
+      <span className="truncate">{label}</span>
     </div>
     {count !== undefined && count > 0 && (
-      <span className={`text-xs px-2 py-0.5 rounded-full ${active ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500'}`}>
+      <span className={`text-xs px-2 py-0.5 rounded-full ${active ? 'bg-orange-100 text-orange-700' : 'bg-slate-100 text-slate-500'}`}>
         {count}
       </span>
     )}
@@ -142,9 +145,13 @@ const SidebarItem = ({ icon: Icon, label, active, onClick, count }: any) => (
 
 export default function App() {
   const { questions, progress, addQuestions, submitAnswer, resetChapterProgress, resetAllProgress, setQuestions } = useQuizStore();
-  const [currentView, setCurrentView] = useState<'dashboard' | 'chapter' | 'mistakes' | 'official' | 'ai'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'chapter' | 'mistakes' | 'official' | 'ai' | 'favorites'>('dashboard');
   const [activeChapterId, setActiveChapterId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true); // 全局加载状态
+  
+  // 收藏和笔记 Hooks
+  const { favorites, toggleFavorite, isFavorite, removeFavorite, count: favoritesCount, getAllFavorites } = useFavorites();
+  const { notes, saveNote, deleteNote, getNote, hasNote } = useNotes();
   
   // 清理了之前的测试函数
   
@@ -532,7 +539,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex bg-slate-50 text-slate-900 font-sans">
+    <div className="min-h-screen flex bg-warm-gradient text-slate-900 font-sans">
       {/* 全局加载指示器 */}
       {isLoading && (
         <div className="fixed inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center z-50">
@@ -546,7 +553,7 @@ export default function App() {
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col fixed h-full z-10">
         <div className="p-6 border-b border-slate-100">
-          <div className="flex items-center gap-2 text-blue-600">
+          <div className="flex items-center gap-2 text-orange-500">
             <Sparkles className="w-6 h-6" />
             <h1 className="text-xl font-bold tracking-tight">SmartPrep AI</h1>
           </div>
@@ -554,7 +561,7 @@ export default function App() {
         
         <nav className="flex-1 p-4 overflow-y-auto">
           <div className="mb-6">
-            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-3">学习中心</h2>
+            <h2 className="nav-group-title">学习中心</h2>
             <SidebarItem 
               icon={LayoutDashboard} 
               label="章节概览" 
@@ -573,6 +580,15 @@ export default function App() {
               count={mistakeQuestions.length}
             />
             <SidebarItem 
+              icon={Heart} 
+              label="收藏夹" 
+              active={currentView === 'favorites'} 
+              onClick={() => {
+                  setCurrentView('favorites');
+              }} 
+              count={favoritesCount}
+            />
+            <SidebarItem 
               icon={Trash2} 
               label="清除所有记录" 
               active={false} 
@@ -583,7 +599,7 @@ export default function App() {
           {/* API测试组件已移除 */}
 
           <div>
-             <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-3">章节列表</h2>
+             <h2 className="nav-group-title">章节练习</h2>
              {CHAPTERS.map(chapter => (
                  <SidebarItem
                     key={chapter.id}
@@ -601,7 +617,7 @@ export default function App() {
       <main className="flex-1 md:ml-64 p-4 md:p-8 max-w-7xl mx-auto w-full">
         {/* Mobile Header */}
         <div className="md:hidden flex items-center justify-between mb-6 bg-white p-4 rounded-xl shadow-sm">
-            <div className="flex items-center gap-2 text-blue-600 font-bold">
+            <div className="flex items-center gap-2 text-orange-500 font-bold">
                 <Sparkles className="w-5 h-5" /> SmartPrep AI
             </div>
             <div className="flex gap-2">
@@ -613,6 +629,10 @@ export default function App() {
                 }} className="p-2 bg-red-50 text-red-600 rounded-lg relative">
                     <AlertOctagon className="w-5 h-5"/>
                     {mistakeQuestions.length > 0 && <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>}
+                </button>
+                <button onClick={() => setCurrentView('favorites')} className="p-2 bg-pink-50 text-pink-600 rounded-lg relative">
+                    <Heart className="w-5 h-5"/>
+                    {favoritesCount > 0 && <span className="absolute top-1 right-1 w-2 h-2 bg-pink-500 rounded-full"></span>}
                 </button>
                 <button onClick={handleResetAllProgressNew} className="p-2 bg-red-50 text-red-600 rounded-lg">
                     <Trash2 className="w-5 h-5"/>
@@ -989,6 +1009,11 @@ export default function App() {
                                         mistakeCount={displayProgress?.mistakeCount}
                                         showAnswer={showAnswer}
                                         onAnswer={submitAnswer}
+                                        isFavorite={isFavorite(q.id)}
+                                        onToggleFavorite={(questionId) => toggleFavorite(questionId, q.chapterId)}
+                                        noteContent={getNote(q.id)?.content || ''}
+                                        onSaveNote={saveNote}
+                                        onDeleteNote={deleteNote}
                                     />
                                 </div>
                             );
@@ -1061,6 +1086,11 @@ export default function App() {
                                         mistakeCount={displayProgress?.mistakeCount}
                                         showAnswer={showAnswer}
                                         onAnswer={submitAnswer}
+                                        isFavorite={isFavorite(q.id)}
+                                        onToggleFavorite={(questionId) => toggleFavorite(questionId, q.chapterId)}
+                                        noteContent={getNote(q.id)?.content || ''}
+                                        onSaveNote={saveNote}
+                                        onDeleteNote={deleteNote}
                                     />
                                 </div>
                             );
@@ -1141,12 +1171,53 @@ export default function App() {
                                         mistakeCount={displayProgress?.mistakeCount}
                                         showAnswer={showAnswer}
                                         onAnswer={submitAnswer}
+                                        isFavorite={isFavorite(q.id)}
+                                        onToggleFavorite={(questionId) => toggleFavorite(questionId, q.chapterId)}
+                                        noteContent={getNote(q.id)?.content || ''}
+                                        onSaveNote={saveNote}
+                                        onDeleteNote={deleteNote}
                                     />
                                 </div>
                             );
                         })
                     )}
                 </div>
+            </div>
+        )}
+
+        {/* Favorites View - 收藏夹 */}
+        {currentView === 'favorites' && (
+            <div className="animate-fade-in pb-20">
+                <div className="flex items-center gap-4 mb-8">
+                    <button 
+                        onClick={() => setCurrentView('dashboard')}
+                        className="p-2 hover:bg-white rounded-full transition-colors border border-transparent hover:border-slate-200 hover:shadow-sm"
+                    >
+                        <ArrowLeft className="w-5 h-5 text-slate-600" />
+                    </button>
+                    <div>
+                        <h2 className="text-2xl font-bold text-slate-800">收藏夹</h2>
+                        <p className="text-sm text-slate-500">
+                            管理你收藏的重点题目
+                        </p>
+                    </div>
+                </div>
+
+                <FavoritesPanel
+                    favorites={favorites}
+                    questions={[...questions, ...generatedQuestions]}
+                    progress={progress}
+                    notes={notes}
+                    onQuestionClick={(questionId, chapterId) => {
+                        // 导航到对应章节并定位到题目
+                        setActiveChapterId(chapterId);
+                        setCurrentView('chapter');
+                        setOnlyMistakes(false);
+                        setStudyMode('practice');
+                        setSessionStartTime(Date.now());
+                    }}
+                    onRemoveFavorite={removeFavorite}
+                />
             </div>
         )}
 

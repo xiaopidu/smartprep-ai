@@ -60,3 +60,390 @@ code {
     transform: translateY(0);
   }
 }
+
+/* ============================================================================
+   暖色渐变主题样式 (T033-T035)
+   ============================================================================ */
+
+/* 主背景渐变 */
+.bg-warm-gradient {
+  background: linear-gradient(135deg, #fff7ed 0%, #fdf2f8 50%, #fce7f3 100%);
+}
+
+/* 按钮渐变样式 */
+.btn-warm-gradient {
+  background: linear-gradient(135deg, #fb923c 0%, #f472b6 100%);
+  color: white;
+  border: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 14px 0 rgba(251, 146, 60, 0.25);
+}
+
+.btn-warm-gradient:hover {
+  background: linear-gradient(135deg, #f97316 0%, #ec4899 100%);
+  box-shadow: 0 6px 20px 0 rgba(251, 146, 60, 0.35);
+  transform: translateY(-1px);
+}
+
+/* 收藏按钮动画 */
+.favorite-pulse {
+  animation: favoritePulse 0.3s ease-out;
+}
+
+@keyframes favoritePulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* 收藏按钮心跳效果 */
+.favorite-heartbeat {
+  animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+@keyframes heartbeat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  14% {
+    transform: scale(1.1);
+  }
+  28% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(1.1);
+  }
+  70% {
+    transform: scale(1);
+  }
+}
+
+/* ============================================================================
+   双列选项布局样式 (T009/T010)
+   ============================================================================ */
+
+/* 选项网格布局 - 默认双列 */
+.options-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+/* 选项按钮样式适配 */
+.options-grid .option-button {
+  min-height: 60px;
+  word-break: break-word;
+  hyphens: auto;
+  display: flex;
+  align-items: center;
+  text-align: left;
+}
+
+/* 响应式：移动端回落单列 */
+@media (max-width: 768px) {
+  .options-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .options-grid .option-button {
+    min-height: auto;
+  }
+}
+
+/* ============================================================================
+   左侧导航紧凑样式 (T025-T028)
+   ============================================================================ */
+
+/* 导航项紧凑样式 */
+.nav-compact {
+  padding: 8px 12px;
+  font-size: 14px;
+  line-height: 1.4;
+  margin-bottom: 2px;
+}
+
+/* 导航分组标题样式 */
+.nav-group-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+  padding: 12px 12px 6px;
+  margin-top: 8px;
+}
+
+.nav-group-title:first-child {
+  margin-top: 0;
+}
+
+/* 导航项悬停效果 - 渐变 */
+.nav-item-hover {
+  transition: all 0.2s ease;
+  border-radius: 8px;
+}
+
+.nav-item-hover:hover {
+  background: linear-gradient(135deg, #ffedd5 0%, #fce7f3 100%);
+}
+
+/* 导航激活状态 */
+.nav-item-active {
+  background: linear-gradient(135deg, #ffedd5 0%, #fce7f3 100%);
+  color: #ea580c;
+  font-weight: 500;
+}
+
+.nav-item-active .nav-icon {
+  color: #f97316;
+}
+
+/* ============================================================================
+   工具栏样式 (T029-T032)
+   ============================================================================ */
+
+/* 工具栏容器 */
+.toolbar-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 工具栏分隔线 */
+.toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background-color: #cbd5e1;
+  margin: 0 4px;
+}
+
+/* 响应式工具栏 */
+@media (max-width: 768px) {
+  .toolbar-container {
+    gap: 8px;
+  }
+  
+  .toolbar-divider {
+    display: none;
+  }
+}
+
+/* ============================================================================
+   章节卡片配色 (T037)
+   ============================================================================ */
+
+/* 章节卡片悬停效果 */
+.chapter-card-hover {
+  transition: all 0.3s ease;
+  border: 1px solid #fed7aa;
+}
+
+.chapter-card-hover:hover {
+  border-color: #fb923c;
+  box-shadow: 0 10px 40px -10px rgba(251, 146, 60, 0.2);
+  transform: translateY(-2px);
+}
+
+/* 章节进度条渐变 */
+.chapter-progress-bar {
+  background: linear-gradient(90deg, #fb923c 0%, #f472b6 100%);
+  border-radius: 9999px;
+  height: 6px;
+}
+
+/* ============================================================================
+   徽章样式
+   ============================================================================ */
+
+/* 收藏徽章 */
+.badge-favorite {
+  background-color: #fce7f3;
+  color: #db2777;
+}
+
+/* 错题徽章 */
+.badge-mistake {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+/* 笔记徽章 */
+.badge-note {
+  background-color: #f3e8ff;
+  color: #9333ea;
+}
+
+/* 徽章叠层容器 */
+.badge-stack {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+/* ============================================================================
+   笔记编辑器样式
+   ============================================================================ */
+
+.note-editor {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.note-editor:focus-within {
+  border-color: #f472b6;
+  box-shadow: 0 0 0 3px rgba(244, 114, 182, 0.1);
+}
+
+.note-editor textarea {
+  border: none;
+  outline: none;
+  resize: none;
+  width: 100%;
+  padding: 12px;
+  font-size: 14px;
+  line-height: 1.6;
+  background: transparent;
+}
+
+.note-editor textarea::placeholder {
+  color: #94a3b8;
+}
+
+/* ============================================================================
+   题目反馈颜色优化 (T038)
+   ============================================================================ */
+
+/* 正确答案反馈 */
+.feedback-correct {
+  background-color: #dcfce7;
+  border-color: #22c55e;
+  color: #166534;
+}
+
+/* 错误答案反馈 */
+.feedback-incorrect {
+  background-color: #fee2e2;
+  border-color: #ef4444;
+  color: #991b1b;
+}
+
+/* 选项正确状态 */
+.option-correct {
+  border-color: #22c55e !important;
+  background-color: #dcfce7 !important;
+  color: #166534 !important;
+}
+
+/* 选项错误状态 */
+.option-incorrect {
+  border-color: #ef4444 !important;
+  background-color: #fee2e2 !important;
+  color: #991b1b !important;
+}
+
+/* ============================================================================
+   虚拟滚动列表样式
+   ============================================================================ */
+
+.virtual-scroll-container {
+  overflow: auto;
+}
+
+.virtual-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.virtual-scroll-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.virtual-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ============================================================================
+   收藏夹面板样式
+   ============================================================================ */
+
+.favorites-panel {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.favorites-panel-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.favorites-panel-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+/* ============================================================================
+   问题卡片增强样式
+   ============================================================================ */
+
+.question-card-enhanced {
+  position: relative;
+  background: white;
+  border: 1px solid #f1f5f9;
+  transition: all 0.2s ease;
+}
+
+.question-card-enhanced:hover {
+  border-color: #fed7aa;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* 收藏按钮容器 */
+.favorite-button-container {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+}
+
+/* 笔记入口按钮 */
+.note-toggle-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #64748b;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.note-toggle-button:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.note-toggle-button.has-note {
+  background: #f3e8ff;
+  border-color: #d8b4fe;
+  color: #7c3aed;
+}
