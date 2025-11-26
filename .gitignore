@@ -24,6 +24,17 @@ out/
 .output/
 
 # =====================
+# Electron Build Output
+# =====================
+electron-app/dist/
+electron-app/release/
+electron-app/node_modules/
+*.exe
+*.dmg
+*.app
+*.zip
+
+# =====================
 # IDE & Editor
 # =====================
 .vscode/

@@ -1,0 +1,140 @@
+name: Build and Release Desktop Apps
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install web app dependencies
+        run: npm install
+        working-directory: smartprep-ai
+
+      - name: Build web app
+        run: npm run build
+        working-directory: smartprep-ai
+
+      - name: Copy dist to electron-app
+        run: Copy-Item -Path "smartprep-ai/dist" -Destination "electron-app/dist" -Recurse
+        shell: pwsh
+
+      - name: Install electron dependencies
+        run: npm install
+        working-directory: electron-app
+
+      - name: Create icon
+        run: node create-icon.js
+        working-directory: electron-app
+
+      - name: Package Windows app
+        run: npm run pack:win
+        working-directory: electron-app
+
+      - name: Create ZIP
+        run: Compress-Archive -Path "release/SmartPrep AI-win32-x64" -DestinationPath "release/SmartPrep-AI-${{ github.ref_name }}-Windows-x64.zip"
+        working-directory: electron-app
+        shell: pwsh
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: electron-app/release/SmartPrep-AI-*-Windows-x64.zip
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install web app dependencies
+        run: npm install
+        working-directory: smartprep-ai
+
+      - name: Build web app
+        run: npm run build
+        working-directory: smartprep-ai
+
+      - name: Copy dist to electron-app
+        run: cp -R smartprep-ai/dist electron-app/dist
+
+      - name: Install electron dependencies
+        run: npm install
+        working-directory: electron-app
+
+      - name: Create icon
+        run: node create-icon.js
+        working-directory: electron-app
+
+      - name: Package macOS app (x64)
+        run: npx electron-packager . "SmartPrep AI" --platform=darwin --arch=x64 --out=release --overwrite --icon=icons/icon.png
+        working-directory: electron-app
+
+      - name: Package macOS app (arm64)
+        run: npx electron-packager . "SmartPrep AI" --platform=darwin --arch=arm64 --out=release --overwrite --icon=icons/icon.png
+        working-directory: electron-app
+
+      - name: Create DMG for x64
+        run: |
+          npm install -g create-dmg
+          create-dmg "release/SmartPrep AI-darwin-x64/SmartPrep AI.app" release/ || true
+          mv release/*.dmg "release/SmartPrep-AI-${{ github.ref_name }}-macOS-x64.dmg" || true
+        working-directory: electron-app
+
+      - name: Create ZIP for arm64
+        run: |
+          cd release
+          zip -r "SmartPrep-AI-${{ github.ref_name }}-macOS-arm64.zip" "SmartPrep AI-darwin-arm64"
+        working-directory: electron-app
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-build
+          path: |
+            electron-app/release/SmartPrep-AI-*-macOS-*.dmg
+            electron-app/release/SmartPrep-AI-*-macOS-*.zip
+
+  release:
+    needs: [build-windows, build-macos]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Display structure of downloaded files
+        run: ls -la artifacts/**
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            artifacts/**/*.zip
+            artifacts/**/*.dmg
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

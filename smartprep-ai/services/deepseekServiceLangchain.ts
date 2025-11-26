@@ -1,30 +1,38 @@
-import { QuestionType, Question } from "../types";
+import { QuestionType, Question, STORAGE_KEYS } from "../types";
 import { ChatOpenAI } from "@langchain/openai";
 
-// 定义环境变量接口
-declare global {
-  interface ImportMetaEnv {
-    readonly VITE_DEEPSEEK_API_KEY?: string;
+/**
+ * 获取 DeepSeek API Key
+ * 优先从 localStorage 读取，回退到环境变量
+ */
+const getDeepSeekAPIKey = (): string | undefined => {
+  // 1. 优先从 localStorage 读取
+  try {
+    const storedKey = localStorage.getItem(STORAGE_KEYS.DEEPSEEK_API_KEY);
+    if (storedKey && storedKey.trim() !== '') {
+      return storedKey;
+    }
+  } catch {
+    // localStorage 不可用（隐私模式或服务端渲染）
+    console.warn('localStorage 不可用，将使用环境变量');
   }
   
-  interface ImportMeta {
-    readonly env: ImportMetaEnv;
-  }
-}
+  // 2. 回退到环境变量
+  return import.meta.env.VITE_DEEPSEEK_API_KEY;
+};
 
 // 创建ChatOpenAI实例，配置为使用DeepSeek API
 export const createDeepSeekChat = () => {
-  // Vite会自动加载.env文件中的VITE_前缀的环境变量
-  const apiKey = import.meta.env.VITE_DEEPSEEK_API_KEY;
+  const apiKey = getDeepSeekAPIKey();
   
   console.log('API Key check:', apiKey ? `${apiKey.substring(0, 8)}...` : 'undefined');
   
   if (!apiKey) {
-    throw new Error("DeepSeek API Key is missing in VITE_DEEPSEEK_API_KEY environment variable.");
+    throw new Error("DeepSeek API Key 未配置。请点击右上角的「API 设置」按钮配置您的 API Key。");
   }
   
   if (apiKey === 'your_deepseek_api_key_here' || apiKey === 'PLACEHOLDER_API_KEY') {
-    throw new Error("DeepSeek API Key is a placeholder. Please replace it with a valid API key from https://platform.deepseek.com/");
+    throw new Error("DeepSeek API Key 是占位符。请点击右上角的「API 设置」按钮配置真实的 API Key。您可以从 https://platform.deepseek.com/ 获取 API Key。");
   }
 
   return new ChatOpenAI({
